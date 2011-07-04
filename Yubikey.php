@@ -7,7 +7,7 @@
  * @copyright   2011 Benjamin Cremer
  * @license     http://opensource.org/licenses/bsd-license.php New BSD License
  * @link        http://www.yubico.com/
-*/
+ */
 class Yubikey
 {
     /**
@@ -27,9 +27,9 @@ class Yubikey
     );
 
     /**
-    * URL part of validation server
-    * @var array
-    */
+     * URL part of validation server
+     * @var array
+     */
     protected $_urlList = array(
         'api.yubico.com/wsapi/2.0/verify',
         'api2.yubico.com/wsapi/2.0/verify',
@@ -252,9 +252,9 @@ class Yubikey
     }
 
     /**
-    * @param string $otp
-    * @return boolean
-    */
+     * @param string $otp
+     * @return boolean
+     */
     public function verify($otp)
     {
         $otp = strtolower($otp);
@@ -297,12 +297,14 @@ class Yubikey
             $curlHandles[] = $curlHandle;
         }
 
+        $curlMultiIsRunning = false;
         do {
             while (($execReturnValue = curl_multi_exec($curlMultiHandle, $curlMultiIsRunning)) == CURLM_CALL_MULTI_PERFORM);
 
             if ($execReturnValue != CURLM_OK) {
                 break;
             }
+
             while ($curlMultiHandleInfo = curl_multi_info_read($curlMultiHandle)) {
                 if ($curlMultiHandleInfo['result'] != CURLE_OK) {
                     continue;
@@ -346,10 +348,10 @@ class Yubikey
     }
 
     /**
-    * Returns response message from verification attempt.
-    *
-    * @return string
-    */
+     * Returns response message from verification attempt.
+     *
+     * @return string
+     */
     public function getErrorMessage()
     {
         return $this->_errorMessage;
@@ -469,18 +471,18 @@ class Yubikey
 
 
     /**
-    * @param string $queryString
-    * @return string
-    */
+     * @param string $queryString
+     * @return string
+     */
     protected function _createSignature($queryString)
     {
         return base64_encode(hash_hmac('sha1', $queryString, $this->_signatureKey, true));
     }
 
     /**
-    * @param array $result
-    * @return boolean
-    */
+     * @param array $result
+     * @return boolean
+     */
     protected function _checkOtpNonceMatch($result)
     {
         return ($result['otp'] == $this->_currentOtp  && $result['nonce'] == $this->_currentNonce);
@@ -523,7 +525,7 @@ class Yubikey
      */
     protected function _otpIsModhex($otp)
     {
-        return (preg_match('/^[cbdefghijklnrtuv]{32,48}$/', $otp, $matches));
+        return (preg_match('/^[cbdefghijklnrtuv]{32,48}$/', $otp));
     }
 
     /**
