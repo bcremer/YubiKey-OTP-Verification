@@ -4,7 +4,7 @@
  * Validation Protocol Version 2.0
  *
  * @author      Benjamin Cremer <crem0r@gmail.com>
- * @copyright   2011 Benjamin Cremer
+ * @copyright   2013 Benjamin Cremer
  * @license     http://opensource.org/licenses/bsd-license.php New BSD License
  * @link        http://www.yubico.com/
  */
@@ -106,7 +106,7 @@ class Yubikey
 
     /**
      * @param integer $id
-     * @param string $signatureKey
+     * @param string  $signatureKey
      */
     public function __construct($id, $signatureKey = null)
     {
@@ -128,6 +128,7 @@ class Yubikey
     public function setSyncLevel($level)
     {
         $this->_sl = $level;
+
         return $this;
     }
 
@@ -146,6 +147,7 @@ class Yubikey
     public function setHttps($https = true)
     {
         $this->_https = $https;
+
         return $this;
     }
 
@@ -164,6 +166,7 @@ class Yubikey
     public function setVerifyHttps($verify = true)
     {
         $this->_httpsverify = $verify;
+
         return $this;
     }
 
@@ -178,19 +181,20 @@ class Yubikey
     /**
      * Specify to use different URL parts for verification without scheme
      *
-     * @param  array $url
+     * @param array $urlList
      * @return Yubikey
      */
     public function setValidationUrls($urlList)
     {
         $this->_urlList = $urlList;
+
         return $this;
     }
 
     /**
      * Get URL parts to use for validation.
      *
-     * @return array  Server URL parts
+     * @return array Server URL parts
      */
     public function getValidationUrls()
     {
@@ -204,6 +208,7 @@ class Yubikey
     public function setWaitForAll($waitForAll = true)
     {
         $this->_waitForAll = $waitForAll;
+
         return $this;
     }
 
@@ -222,6 +227,7 @@ class Yubikey
     public function setTimeout($int)
     {
         $this->_timeout = $int;
+
         return $this;
     }
 
@@ -240,6 +246,7 @@ class Yubikey
     public function setUseTimestamp($useTimestamp = true)
     {
         $this->_useTimestamp = $useTimestamp;
+
         return $this;
     }
 
@@ -261,6 +268,7 @@ class Yubikey
 
         if (!$this->_otpIsModhex($otp)) {
             $this->_errorMessage = 'OTP NOT MODHEX';
+
             return false;
         }
 
@@ -270,6 +278,7 @@ class Yubikey
         $isReplayed          = false;
         $isValid             = false;
         $hasResult           = false;
+        $result              = array();
 
         $queries = $this->_getQueries();
 
@@ -312,7 +321,7 @@ class Yubikey
 
                 $info = curl_getinfo($curlMultiHandleInfo['handle']);
 
-                if ($info['http_code'] != 200)  {
+                if ($info['http_code'] != 200) {
                     continue;
                 }
 
@@ -336,6 +345,7 @@ class Yubikey
 
         if ($isReplayed) {
             $this->_errorMessage =  'REPLAYED_OTP';
+
             return false;
         }
 
@@ -344,6 +354,7 @@ class Yubikey
         }
 
         $this->_errorMessage = 'NO_VALID_ANSWER: ' . $result['message'];
+
         return false;
     }
 
@@ -416,6 +427,7 @@ class Yubikey
         $out = array();
         if (!preg_match('/status=([a-zA-Z0-9_]+)/', $output, $out)) {
             $result['message'] = 'Missing status code, malformed response?';
+
             return $result;
         }
         $status = $out[1];
@@ -428,8 +440,9 @@ class Yubikey
             $status == 'NO_SUCH_CLIENT' ||
             $status == 'BAD_SIGNATURE' ||
             $status == 'OPERATION_NOT_ALLOWED'
-        ) {
+) {
             $result['message'] = $this->_statusMessages[$status];
+
             return $result;
         }
 
@@ -437,11 +450,13 @@ class Yubikey
         // Let's check if the server response matches our request
         if (!$this->_checkOtpNonceMatch($response)) {
             $result['message'] = 'OTP and/or Nonce does not match request';
+
             return $result;
         }
 
         if ($this->_signatureKey && !$this->_checkResponseSignature($response)) {
             $result['message'] = 'Bad Response Signature';
+
             return $result;
         }
 
@@ -450,25 +465,28 @@ class Yubikey
         if ($status == 'REPLAYED_OTP') {
             $result['message']    = $this->_statusMessages[$status];
             $result['isReplayed'] = true;
+
             return $result;
         }
 
         if ($status == 'OK') {
             $result['message'] = $this->_statusMessages[$status];
             $result['isValid'] = true;
+
             return $result;
         }
 
         if (array_key_exists($status, $this->_statusMessages)) {
             $result['message'] = $this->_statusMessages[$status];
+
             return $result;
         }
 
         // hue? This should not happen
         $result['message'] = 'Unknown status: ' . $status;
+
         return $result;
     }
-
 
     /**
      * @param string $queryString
@@ -489,7 +507,7 @@ class Yubikey
     }
 
     /**
-     * @param array $result
+     * @param array $response
      * @return boolean
      */
     protected function _checkResponseSignature($response)
@@ -512,7 +530,7 @@ class Yubikey
         ksort($parts);
 
         $queryString = '';
-        foreach($parts as $p => $v) {
+        foreach ($parts as $p => $v) {
             $queryString .= '&' . $p . '=' . $v;
         }
 
@@ -529,7 +547,7 @@ class Yubikey
     }
 
     /**
-     * @todo use better algorithm to create nonce
+     * @todo use better algorithm to create nonce (openssl_random_pseudo_bytes)
      * @return string
      */
     protected function _generateNonce()
@@ -561,7 +579,7 @@ class Yubikey
         );
 
         foreach ($response as $row) {
-            foreach($parameters as $param) {
+            foreach ($parameters as $param) {
                 if (substr($row, 0, strlen($param) + 1) == $param  . '=') {
                     $result[$param] = substr(trim($row), strlen($param) + 1);
                 }
